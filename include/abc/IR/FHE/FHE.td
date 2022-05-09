@@ -146,6 +146,7 @@ def FHE_MultiplyOp : FHE_Op<"multiply", [Commutative, DeclareOpInterfaceMethods<
   );
 
   let hasFolder = 1;
+  let hasCanonicalizeMethod = 1;
 }
 
 def FHE_AddOp : FHE_Op<"add", [Commutative, DeclareOpInterfaceMethods<InferTypeOpInterface>]> {

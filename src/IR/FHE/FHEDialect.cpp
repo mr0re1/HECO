@@ -523,6 +523,32 @@ void fhe::ConstOp::getAsmResultNames(
     return x().front();
 }
 
+///simplifies mul(x,2) to x+x
+::mlir::LogicalResult fhe::MultiplyOp::canonicalize(MultiplyOp op, ::mlir::PatternRewriter &rewriter)
+{
+  if (op->getNumOperands() != 2)
+    return failure();
+
+  int two = -1, id = 0;
+  for (auto o: op->getOperands()) {
+    if (Operation *param = o.getDefiningOp()) {
+
+      if ((std::string)param->getName().getStringRef() == "arith.constant" &&
+        param->getAttr("value").dyn_cast<IntegerAttr>().getInt() == 2) {
+        two = id;
+      }
+    }
+    id++;
+  }
+
+  if (two == -1)
+    return failure();
+
+  auto operand = op->getOperand(two^1);
+  rewriter.replaceOpWithNewOp<fhe::AddOp>(op, op.getResult().getType(), mlir::ValueRange({operand, operand}));
+  return success();
+}
+
 //===----------------------------------------------------------------------===//
 // FHE dialect definitions
 //===----------------------------------------------------------------------===//
